@@ -1,0 +1,5 @@
+Run "install_requirements.bat", this will create a venv in the "utils" subfolder with the required python packages.
+
+Next, grab your animation .dae file and drag-and-drop it on top of "mixamo_to_openpose.bat".
+
+To change settings, open "settings.txt" and modify the values.

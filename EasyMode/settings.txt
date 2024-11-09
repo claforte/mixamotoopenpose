@@ -1,0 +1,9 @@
+width=512
+height=512
+scale=2.0
+rotation_x=0
+rotation_y=0
+rotation_z=0
+input_fps=30
+max_frames=0
+output_format=GIF
