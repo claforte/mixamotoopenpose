@@ -11,6 +11,12 @@ Animations can be reduced to a specific number of frames, rotated to be viewed f
 This script allows the easy creation of OpenPose animations for AI image generation, or dataset creation.
 
 # Usage
+
+## Easy Mode
+Follow the "instructions.txt" inside the "EasyMode" folder to easily install and run the conversion script.
+
+## CLI
+
 Requirements: Pillow, Numpy, OpenCV
 
 `pip install pillow numpy opencv-python`
