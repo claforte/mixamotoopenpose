@@ -13,6 +13,10 @@ This script allows the easy creation of OpenPose animations for AI image generat
 # Usage
 
 ## Easy Mode
+
+Download an animation from Mixamo as a Collada .dae file. (Recommended without skin for smaller file size. DO NOT reduce keyframes!)
+Extract the zip folder so you have the standard .dae file itself.
+
 Follow the "instructions.txt" inside the "EasyMode" folder to easily install and run the conversion script.
 
 ## CLI
@@ -21,7 +25,7 @@ Requirements: Pillow, Numpy, OpenCV
 
 `pip install pillow numpy opencv-python`
 
-Download an animation from Mixamo as a Collada .dae file. (Recommended without skin for smaller file size.)
+Download an animation from Mixamo as a Collada .dae file. (Recommended without skin for smaller file size. DO NOT reduce keyframes!)
 Extract the zip folder so you have the standard .dae file itself.
 
 Run mixamo_to_openpose.py with the required input and output arguments
