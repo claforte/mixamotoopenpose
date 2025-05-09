@@ -30,6 +30,8 @@ Extract the zip folder so you have the standard .dae file itself.
 
 Run mixamo_to_openpose.py with the required input and output arguments
 
+Example: `python mixamo_to_openpose.py -i ./mma_kick.dae -o mma_kick -ow 1024 -of PNG -ry 90`
+
 Arguments:
 
 - -i --input: Expects string, Path to folder contianing Mixamo .dae files, or a single .dae file.
