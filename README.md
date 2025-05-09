@@ -23,7 +23,7 @@ Follow the "instructions.txt" inside the "EasyMode" folder to easily install and
 
 Requirements: Pillow, Numpy, OpenCV
 
-`pip install pillow numpy opencv-python`
+`pip install pillow numpy opencv-python matplotlib`
 
 Download an animation from Mixamo as a Collada .dae file. (Recommended without skin for smaller file size. DO NOT reduce keyframes!)
 Extract the zip folder so you have the standard .dae file itself.

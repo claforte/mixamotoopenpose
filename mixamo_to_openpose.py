@@ -6,6 +6,9 @@ import xml.etree.ElementTree as ET
 import os
 import glob
 import argparse
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", required = True, help = "Path to folder contianing Mixamo .dae files, or a single .dae file.")
@@ -267,8 +270,17 @@ def load_keypoints_for_drawing(data):
 
 
 # Draw the body keypoint and limbs
-def draw_bodypose(canvas, candidate, subset):
-    stickwidth = 2
+def draw_bodypose(canvas_size, candidate, subset):
+    # Create figure and axis with exact pixel dimensions
+    dpi = 100
+    fig = plt.figure(figsize=(canvas_size[0]/dpi, canvas_size[1]/dpi), dpi=dpi, facecolor='black')
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, canvas_size[0])
+    ax.set_ylim(canvas_size[1], 0)  # Invert y-axis to match OpenCV
+    ax.axis('off')
+    ax.set_facecolor('black')
+    
+    
     limbSeq = [[2, 3], [2, 6], [3, 4], [4, 5], [6, 7], [7, 8], [2, 9], [9, 10], \
                [10, 11], [2, 12], [12, 13], [13, 14], [2, 1], [1, 15], [15, 17], \
                [1, 16], [16, 18], [3, 17], [6, 18]]
@@ -276,35 +288,44 @@ def draw_bodypose(canvas, candidate, subset):
     colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0], [85, 255, 0], [0, 255, 0], \
               [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], \
               [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85]]
-    
-    # Draw keypoints with true sub-pixel positions
-    for i in range(18):
-        for n in range(len(subset)):
-            index = int(subset[n][i])
-            if index == -1:
-                continue
-            x, y = candidate[index][0:2]
-            # Use exact floating-point coordinates without rounding
-            cv2.circle(canvas, (int(x), int(y)), 2, colors[i], thickness=-1, lineType=cv2.LINE_AA)
-    
-    # Draw limbs with true sub-pixel positions
+    # Draw limbs with subpixel accuracy
     for i in range(17):
         for n in range(len(subset)):
             index = subset[n][np.array(limbSeq[i]) - 1]
             if -1 in index:
                 continue
-            cur_canvas = canvas.copy()
             Y = candidate[index.astype(int), 0]
             X = candidate[index.astype(int), 1]
             mX = np.mean(X)
             mY = np.mean(Y)
             length = ((X[0] - X[1]) ** 2 + (Y[0] - Y[1]) ** 2) ** 0.5
             angle = math.degrees(math.atan2(X[0] - X[1], Y[0] - Y[1]))
-            # Use exact floating-point coordinates without rounding
-            polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length/2), stickwidth), int(angle), 0, 360, 1)
-            cv2.fillConvexPoly(cur_canvas, polygon, colors[i], lineType=cv2.LINE_AA)
-            canvas = cv2.addWeighted(canvas, 0.4, cur_canvas, 0.6, 0)
-    return canvas
+            
+            stickwidth = 4
+            ellipse = patches.Ellipse((mY, mX), length, stickwidth, angle=angle, 
+                                    color=[c/256 for c in colors[i]], alpha=0.6,
+                                    linewidth=0, fill=True)
+            ax.add_patch(ellipse)
+
+    
+    # Draw keypoints with subpixel accuracy
+    for i in range(18):
+        for n in range(len(subset)):
+            index = int(subset[n][i])
+            if index == -1:
+                continue
+            x, y = candidate[index][0:2]
+            circle = patches.Circle((x, y), 1.5, color=[c/256 for c in colors[i]], alpha=1)
+            ax.add_patch(circle)
+    
+        
+    # Convert to numpy array
+    canvas = FigureCanvas(fig)
+    canvas.draw()
+    image = np.array(canvas.renderer.buffer_rgba())
+    plt.close(fig)
+    
+    return image[:, :, :3]  # Return RGB image
 
 
 # Reduce the number of frames to a maximum with even distribution
@@ -362,10 +383,8 @@ def convert_dae(input_path, output_path, image_size=(320, 512), rotation_angles=
 
         pil_images = []
         for idx, (candidate, subset) in enumerate(frames):
-            canvas = np.zeros((image_size[1], image_size[0], 3), dtype=np.uint8)
-            drawn_canvas = draw_bodypose(canvas, candidate, subset)
-            drawn_canvas_rgb = cv2.cvtColor(drawn_canvas, cv2.COLOR_BGR2RGB)
-            pil_image = Image.fromarray(drawn_canvas_rgb)
+            drawn_canvas = draw_bodypose(image_size, candidate, subset)
+            pil_image = Image.fromarray(drawn_canvas)
             pil_images.append(pil_image)
             
             # Save each frame as a PNG if output format is PNG
